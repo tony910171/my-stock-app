@@ -1,6 +1,5 @@
 streamlit
 yfinance
-pandas
 pandas-ta
 matplotlib
 numpy<2.0.0
