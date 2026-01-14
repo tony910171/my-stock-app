@@ -5,6 +5,8 @@ import pandas_ta as ta
 from prophet import Prophet
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 # --- 頁面配置 ---
 st.set_page_config(page_title="AI 台股監控預測系統", layout="wide")
@@ -16,23 +18,22 @@ def load_data(sid):
     df = yf.download(sid, period="2y", interval="1d")
     return df
 
-def run_prophet_model(df, periods=7, flex=0.05):
-    # 準備模型數據
-    df_p = df.reset_index()[['Date', 'Close']]
-    df_p.columns = ['ds', 'y']
-    df_p['ds'] = df_p['ds'].dt.tz_localize(None)
+def run_simple_model(df, periods=7):
+    # 使用序號作為 X，股價作為 y
+    df_s = df.reset_index()
+    df_s['X'] = np.arange(len(df_s))
+    X = df_s[['X']].values
+    y = df_s['Close'].values
     
-    # flex 為靈活性參數 (changepoint_prior_scale)
-    model = Prophet(
-        daily_seasonality=True, 
-        changepoint_prior_scale=flex,
-        seasonality_mode='multiplicative'
-    )
-    model.fit(df_p)
+    model = LinearRegression()
+    model.fit(X, y)
     
-    future = model.make_future_dataframe(periods=periods)
-    forecast = model.predict(future)
-    return model, forecast
+    # 預測未來
+    last_idx = len(df_s)
+    future_X = np.arange(last_idx, last_idx + periods).reshape(-1, 1)
+    forecast_values = model.predict(future_X)
+    
+    return forecast_values
 
 # --- 側邊欄設定 ---
 st.sidebar.header("📊 投資決策中心")
