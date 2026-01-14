@@ -3,6 +3,5 @@ yfinance
 pandas
 pandas_ta
 matplotlib
-plotly
 numpy==1.26.4
 prophet==1.1.5
